@@ -5,6 +5,7 @@ using ModelLayer.DTOs.Auth;
 using ModelLayer.Helpers;
 
 using Microsoft.Extensions.Configuration;
+using System.Formats.Asn1;
 
 namespace BusinessLayer.Services
 {
@@ -55,6 +56,11 @@ namespace BusinessLayer.Services
             int expiresInMinutes = int.Parse( _configuration["Jwt:ExpiresInMinutes"] ?? throw new Exception("JWT Expiry missing"));
 
             return JwtHelper.GenerateToken(user.UserId, user.Email!, key, issuer, audience, expiresInMinutes);
+        }
+
+        public async Task VerifyEmailAsync(string token)
+        {
+            int userId = JwtHelper.ValidateAndGetUserId(token, _configuration["Jwt:Key"]!);
         }
     }
 }
