@@ -1,6 +1,7 @@
 ﻿using BusinessLayer.Interfaces;
 using DataBaseLayer.Entities;
 using DataBaseLayer.Repositories.Interfaces;
+using Microsoft.Identity.Client;
 using ModelLayer.DTOs.Auth;
 using ModelLayer.Helpers;
 
@@ -30,6 +31,20 @@ namespace BusinessLayer.Services
 
             await _userRepository.AddAsync(user);
             await _userRepository.SaveAsync();
+        }
+
+        public async Task<bool> LoginAsync(LoginDto dto)
+        {
+            var user = await _userRepository.GetByEmailAsync(dto.Email);
+            if (user == null)
+                throw new Exception("Invalid Email or Password");
+
+            bool isValid = PasswordHasher.VerifyPassword(dto.Password, user.PasswordHash, user.PasswordSalt);
+
+            if (!isValid)
+                throw new Exception("Invalid Email or Password");
+
+            return true;
         }
     }
 }

@@ -20,6 +20,13 @@ namespace FundooNotes.Controllers
         {
             await _authService.RegisterAsync(dto);
             return Ok(new { Message = "User Register Successfully" });
-        } 
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto dto)
+        {
+            await _authService.LoginAsync(dto);
+            return Ok(new { Message ="User Login Successful" });
+        }
     }
 }
