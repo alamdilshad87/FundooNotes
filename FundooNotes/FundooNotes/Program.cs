@@ -1,8 +1,12 @@
 using Scalar.AspNetCore;
+using Microsoft.EntityFrameworkCore;
+
 using DataBaseLayer.Context;
 using DataBaseLayer.Repositories.Interfaces;
 using DataBaseLayer.Repositories.Implementations;
-using Microsoft.EntityFrameworkCore;
+using BusinessLayer.Interfaces;
+using BusinessLayer.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +21,7 @@ builder.Services.AddDbContext<FundooNotesDbContext>(options =>
 );
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 

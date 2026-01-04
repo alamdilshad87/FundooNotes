@@ -1,6 +1,4 @@
-﻿using System;
-
-using DataBaseLayer.Entities;
+﻿using DataBaseLayer.Entities;
 
 namespace DataBaseLayer.Repositories.Interfaces
 {
