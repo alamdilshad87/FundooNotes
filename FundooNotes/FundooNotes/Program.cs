@@ -1,5 +1,7 @@
 using Scalar.AspNetCore;
 using DataBaseLayer.Context;
+using DataBaseLayer.Repositories.Interfaces;
+using DataBaseLayer.Repositories.Implementations;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +15,8 @@ builder.Services.AddDbContext<FundooNotesDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
