@@ -2,6 +2,7 @@
 using ModelLayer.DTOs.Auth;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FundooNotes.Controllers
 {
@@ -15,6 +16,13 @@ namespace FundooNotes.Controllers
             _authService = authService;
         }
 
+        [Authorize]
+        [HttpGet("secure")]
+        public IActionResult Secure()
+        {
+            return Ok("You are Authenticated");
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
@@ -25,8 +33,8 @@ namespace FundooNotes.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            await _authService.LoginAsync(dto);
-            return Ok(new { Message ="User Login Successful" });
+            var token = await _authService.LoginAsync(dto);
+            return Ok(new { token });
         }
     }
 }
