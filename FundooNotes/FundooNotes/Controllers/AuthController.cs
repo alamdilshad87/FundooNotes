@@ -36,5 +36,13 @@ namespace FundooNotes.Controllers
             var token = await _authService.LoginAsync(dto);
             return Ok(new { token });
         }
+
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail(VerifyEmailDto dto)
+        {
+            await _authService.VerifyEmailAsync(dto.Token);
+            return Ok("Email verified successfully");
+        }
+
     }
 }

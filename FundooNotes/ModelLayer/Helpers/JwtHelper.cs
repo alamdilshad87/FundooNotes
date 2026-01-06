@@ -29,5 +29,31 @@ namespace ModelLayer.Helpers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public static int ValidateAndGetUserId(string token, string key)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParams = new TokenValidationParameters
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(key)
+                )
+            };
+
+            ClaimsPrincipal principal = tokenHandler.ValidateToken(
+                token,
+                validationParams,
+                out _
+            );
+
+            string userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? throw new Exception("Invalid token");
+
+            return int.Parse(userId);
+        }
     }
 }
