@@ -2,27 +2,35 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using ModelLayer.Exceptions;
 
 namespace ModelLayer.Helpers
 {
-    public class JwtHelper
+    public static class JwtHelper
     {
         public static string GenerateToken(
-            int userid, string email, string key, string issuer, string audience, int expiresInMinutes)
+            int userId,
+            string email,
+            string key,
+            string issuer,
+            string audience,
+            int expiresInMinutes,
+            string purpose)
         {
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, userid.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, email),
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Email, email),
+                new Claim("purpose", purpose)
             };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
-                claims: claims,
+                issuer,
+                audience,
+                claims,
                 expires: DateTime.UtcNow.AddMinutes(expiresInMinutes),
                 signingCredentials: credentials
             );
@@ -30,9 +38,13 @@ namespace ModelLayer.Helpers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public static int ValidateAndGetUserId(string token, string key)
+        public static int ValidateAndGetUserId(
+            string token,
+            string key,
+            string expectedPurpose)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
+
             var validationParams = new TokenValidationParameters
             {
                 ValidateIssuer = false,
@@ -40,8 +52,7 @@ namespace ModelLayer.Helpers
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(key)
-                )
+                    Encoding.UTF8.GetBytes(key))
             };
 
             ClaimsPrincipal principal = tokenHandler.ValidateToken(
@@ -50,8 +61,12 @@ namespace ModelLayer.Helpers
                 out _
             );
 
+            var purpose = principal.FindFirst("purpose")?.Value;
+            if (purpose != expectedPurpose)
+                throw new UnauthorizedException("Invalid token purpose");
+
             string userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                ?? throw new Exception("Invalid token");
+                ?? throw new UnauthorizedException("Invalid token");
 
             return int.Parse(userId);
         }

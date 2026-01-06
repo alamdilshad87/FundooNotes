@@ -1,8 +1,7 @@
 ﻿using BusinessLayer.Interfaces;
-using ModelLayer.DTOs.Auth;
-
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ModelLayer.DTOs.Auth;
 
 namespace FundooNotes.Controllers
 {
@@ -11,6 +10,7 @@ namespace FundooNotes.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+
         public AuthController(IAuthService authService)
         {
             _authService = authService;
@@ -24,10 +24,14 @@ namespace FundooNotes.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+        public async Task<IActionResult> Register(RegisterDto dto)
         {
-            await _authService.RegisterAsync(dto);
-            return Ok(new { Message = "User Register Successfully" });
+            var verifyToken = await _authService.RegisterAsync(dto);
+            return Ok(new
+            {
+                message = "User registered successfully",
+                verifyToken = verifyToken
+            });
         }
 
         [HttpPost("login")]
