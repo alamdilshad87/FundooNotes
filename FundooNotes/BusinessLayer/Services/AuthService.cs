@@ -82,5 +82,19 @@ namespace BusinessLayer.Services
                 15
             );
         }
+
+        public async Task ResetPasswordAsync(string token, string newPassword)
+        {
+            int userId = JwtHelper.ValidateAndGetUserId(token, _configuration["Jwt:Key"]!);
+
+            var user = await _userRepository.GetByIdAsync(userId) ?? throw new Exception("Invalid token");
+
+            PasswordHasher.CreateHash(newPassword, out var hash, out var salt);
+
+            user.PasswordHash = hash;
+            user.PasswordSalt = salt;
+
+            await _userRepository.SaveAsync();
+        }
     }
 }

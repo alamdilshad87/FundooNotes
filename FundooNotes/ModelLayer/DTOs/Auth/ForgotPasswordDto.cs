@@ -2,7 +2,7 @@
 
 namespace ModelLayer.DTOs.Auth
 {
-    public class ForgotPassword
+    public class ForgotPasswordDto
     {
         [Required]
         [EmailAddress]

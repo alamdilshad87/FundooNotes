@@ -51,5 +51,11 @@ namespace FundooNotes.Controllers
             return Ok(new { resetToken = token });
         }
 
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            await _authService.ResetPasswordAsync(dto.Token, dto.NewPassword);
+            return Ok("Password reset successful");
+        }
     }
 }
