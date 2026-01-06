@@ -44,5 +44,12 @@ namespace FundooNotes.Controllers
             return Ok("Email verified successfully");
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+        {
+            var token = await _authService.ForgotPasswordAsync(dto.Email);
+            return Ok(new { resetToken = token });
+        }
+
     }
 }

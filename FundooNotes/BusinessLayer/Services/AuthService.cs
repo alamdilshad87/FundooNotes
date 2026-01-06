@@ -60,16 +60,27 @@ namespace BusinessLayer.Services
 
         public async Task VerifyEmailAsync(string token)
         {
-            int userId = JwtHelper.ValidateAndGetUserId(
-        token,
-        _configuration["Jwt:Key"]!
-    );
+            int userId = JwtHelper.ValidateAndGetUserId(token, _configuration["Jwt:Key"]!);
 
-            var user = await _userRepository.GetByIdAsync(userId)
-                ?? throw new Exception("Invalid token");
+            var user = await _userRepository.GetByIdAsync(userId) ?? throw new Exception("Invalid token");
 
             user.IsEmailVerified = true;
             await _userRepository.SaveAsync();
+        }
+
+        public async Task<string> ForgotPasswordAsync(string email)
+        {
+            var user = await _userRepository.GetByEmailAsync(email)
+                ?? throw new Exception("User not found");
+
+            return JwtHelper.GenerateToken(
+                user.UserId,
+                user.Email!,
+                _configuration["Jwt:Key"]!,
+                _configuration["Jwt:Issuer"]!,
+                _configuration["Jwt:Audience"]!,
+                15
+            );
         }
     }
 }
