@@ -57,5 +57,18 @@ namespace BusinessLayer.Services
             await _noteRepository.SaveAsync();
         }
 
+        public async Task DeleteNoteAsync(int noteId, int userId)
+        {
+            var note = await _noteRepository.GetByIdAsync(noteId, userId);
+
+            if (note == null)
+                throw new NotFoundException("Note not found");
+
+            note.IsDeleted = true;
+            note.UpdatedAt = DateTime.UtcNow;
+
+            await _noteRepository.UpdateAsync(note);
+            await _noteRepository.SaveAsync();
+        }
     }
 }

@@ -71,5 +71,21 @@ namespace FundooNotes.Controllers
             });
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteNote(int id)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            await _noteService.DeleteNoteAsync(id, userId);
+
+            return Ok(new
+            {
+                message = "Note deleted successfully"
+            });
+        }
+
+
     }
 }
