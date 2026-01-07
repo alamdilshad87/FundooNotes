@@ -6,3 +6,4 @@ obj/
 *.userosscache
 *.sln.docstates
 *.vscode/
+appsettings.Development.json
