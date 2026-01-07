@@ -2,6 +2,7 @@
 using DataBaseLayer.Entities;
 using DataBaseLayer.Repositories.Interfaces;
 using ModelLayer.DTOs.Notes;
+using ModelLayer.Exceptions;
 
 namespace BusinessLayer.Services
 {
@@ -30,6 +31,15 @@ namespace BusinessLayer.Services
         public async Task<List<Note>> GetAllNotesAsync(int userId)
         {
             return await _noteRepository.GetAllByUserAsync(userId);
+        }
+        public async Task<Note> GetNoteByIdAsync(int noteId, int userId)
+        {
+            var note = await _noteRepository.GetByIdAsync(noteId, userId);
+
+            if (note == null)
+                throw new NotFoundException("Note not found");
+
+            return note;
         }
     }
 }

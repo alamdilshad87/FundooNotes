@@ -43,5 +43,17 @@ namespace FundooNotes.Controllers
 
             return Ok(notes);
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetNoteById(int id)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            var note = await _noteService.GetNoteByIdAsync(id, userId);
+
+            return Ok(note);
+        }
     }
 }
