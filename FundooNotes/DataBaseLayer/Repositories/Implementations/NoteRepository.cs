@@ -47,5 +47,17 @@ namespace DataBaseLayer.Repositories.Implementations
         {
             await _context.SaveChangesAsync();
         }
+        public async Task<List<Note>> SearchAsync(int userId, string query)
+        {
+            return await _context.Notes
+                .Where(n =>
+                    n.UserId == userId &&
+                    !n.IsDeleted &&
+                    (n.Title.Contains(query) || n.Content.Contains(query))
+                )
+                .OrderByDescending(n => n.UpdatedAt)
+                .ToListAsync();
+        }
+
     }
 }

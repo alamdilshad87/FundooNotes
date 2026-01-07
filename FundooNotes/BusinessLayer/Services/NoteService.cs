@@ -109,6 +109,12 @@ namespace BusinessLayer.Services
             await _noteRepository.UpdateAsync(note);
             await _noteRepository.SaveAsync();
         }
+        public async Task<List<Note>> SearchNotesAsync(int userId, string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return new List<Note>();
 
+            return await _noteRepository.SearchAsync(userId, query);
+        }
     }
 }

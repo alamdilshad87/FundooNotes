@@ -130,5 +130,17 @@ namespace FundooNotes.Controllers
                 message = "Note color updated successfully"
             });
         }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchNotes([FromQuery] string query)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            var notes = await _noteService.SearchNotesAsync(userId, query);
+
+            return Ok(notes);
+        }
     }
 }
