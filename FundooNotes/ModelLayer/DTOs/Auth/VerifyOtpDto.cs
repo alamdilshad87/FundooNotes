@@ -2,7 +2,7 @@
 
 namespace ModelLayer.DTOs.Auth
 {
-    public class ResetPasswordDto
+    public class VerifyOtpDto
     {
         [Required]
         [EmailAddress]
@@ -12,7 +12,6 @@ namespace ModelLayer.DTOs.Auth
         public string Otp { get; set; } = null!;
 
         [Required]
-        [MinLength(6)]
-        public string NewPassword { get; set; } = null!;
+        public string Purpose { get; set; } = null!;
     }
 }

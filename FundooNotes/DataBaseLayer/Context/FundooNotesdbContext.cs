@@ -8,5 +8,7 @@ namespace DataBaseLayer.Context
         public FundooNotesDbContext(DbContextOptions<FundooNotesDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Otp> Otps { get; set; }
+
     }
 }

@@ -16,50 +16,68 @@ namespace FundooNotes.Controllers
             _authService = authService;
         }
 
-        [Authorize]
-        [HttpGet("secure")]
-        public IActionResult Secure()
-        {
-            return Ok("You are Authenticated");
-        }
-
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto dto)
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            var verifyToken = await _authService.RegisterAsync(dto);
+            await _authService.RegisterAsync(dto);
+
             return Ok(new
             {
-                message = "User registered successfully",
-                verifyToken = verifyToken
+                message = "Registration successful. OTP sent to email."
             });
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDto dto)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            var token = await _authService.LoginAsync(dto);
-            return Ok(new { token });
+            await _authService.LoginAsync(dto);
+
+            return Ok(new
+            {
+                message = "OTP sent to email for login verification."
+            });
         }
 
-        [HttpPost("verify-email")]
-        public async Task<IActionResult> VerifyEmail(VerifyEmailDto dto)
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
         {
-            await _authService.VerifyEmailAsync(dto.Token);
-            return Ok("Email verified successfully");
+            var token = await _authService.VerifyOtpAsync(dto);
+
+            return Ok(new
+            {
+                message = "OTP verified successfully",
+                token
+            });
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
-            var token = await _authService.ForgotPasswordAsync(dto.Email);
-            return Ok(new { resetToken = token });
+            await _authService.ForgotPasswordAsync(dto.Email);
+
+            return Ok(new
+            {
+                message = "OTP sent to email for password reset."
+            });
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
         {
-            await _authService.ResetPasswordAsync(dto.Token, dto.NewPassword);
-            return Ok("Password reset successful");
+            await _authService.ResetPasswordAsync(dto);
+
+            return Ok(new
+            {
+                message = "Password reset successful."
+            });
+        }
+
+
+        [Authorize]
+        [HttpGet("secure")]
+        public IActionResult Secure()
+        {
+            return Ok("You are authenticated");
         }
     }
 }

@@ -4,7 +4,6 @@ using DataBaseLayer.Repositories.Interfaces;
 using ModelLayer.DTOs.Auth;
 using ModelLayer.Exceptions;
 using ModelLayer.Helpers;
-
 using Microsoft.Extensions.Configuration;
 
 namespace BusinessLayer.Services
@@ -12,23 +11,31 @@ namespace BusinessLayer.Services
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IOtpRepository _otpRepository;
+        private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
-        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        public AuthService(
+            IUserRepository userRepository,
+            IOtpRepository otpRepository,
+            IEmailService emailService,
+            IConfiguration configuration)
         {
             _userRepository = userRepository;
+            _otpRepository = otpRepository;
+            _emailService = emailService;
             _configuration = configuration;
         }
 
-        public async Task<string> RegisterAsync(RegisterDto dto)
+        public async Task RegisterAsync(RegisterDto dto)
         {
-            var existing = await _userRepository.GetByEmailAsync(dto.Email);
-            if (existing != null)
+            var user = await _userRepository.GetByEmailAsync(dto.Email);
+            if (user != null)
                 throw new ValidationException("User already exists");
 
             PasswordHasher.CreateHash(dto.Password, out var hash, out var salt);
 
-            var user = new User
+            user = new User
             {
                 Email = dto.Email,
                 PasswordHash = hash,
@@ -39,30 +46,40 @@ namespace BusinessLayer.Services
             await _userRepository.AddAsync(user);
             await _userRepository.SaveAsync();
 
-            return JwtHelper.GenerateToken(
-                user.UserId,
-                user.Email!,
-                GetJwtKey(),
-                GetJwtIssuer(),
-                GetJwtAudience(),
-                30,
-                "verify"
-            );
+            await GenerateAndSendOtp(user, "verify");
         }
 
-        public async Task<string> LoginAsync(LoginDto dto)
+        public async Task LoginAsync(LoginDto dto)
         {
             var user = await _userRepository.GetByEmailAsync(dto.Email)
-                ?? throw new UnauthorizedException("Invalid email or password");
+                ?? throw new UnauthorizedException("Invalid credentials");
 
-            if (!PasswordHasher.VerifyPassword(
-                    dto.Password,
-                    user.PasswordHash!,
-                    user.PasswordSalt!
-                ))
-            {
-                throw new UnauthorizedException("Invalid email or password");
-            }
+            if (!PasswordHasher.VerifyPassword(dto.Password, user.PasswordHash!, user.PasswordSalt!))
+                throw new UnauthorizedException("Invalid credentials");
+
+            if (!user.IsEmailVerified)
+                throw new UnauthorizedException("Email not verified");
+
+            await GenerateAndSendOtp(user, "login");
+        }
+
+        public async Task<string> VerifyOtpAsync(VerifyOtpDto dto)
+        {
+            var user = await _userRepository.GetByEmailAsync(dto.Email)
+                ?? throw new NotFoundException("User not found");
+
+            var otp = await _otpRepository.GetValidOtp(
+                user.UserId,
+                dto.Otp,
+                dto.Purpose
+            );
+
+            otp.IsUsed = true;
+
+            if (dto.Purpose == "verify")
+                user.IsEmailVerified = true;
+
+            await _otpRepository.SaveAsync();
 
             return JwtHelper.GenerateToken(
                 user.UserId,
@@ -75,72 +92,58 @@ namespace BusinessLayer.Services
             );
         }
 
-        public async Task VerifyEmailAsync(string token)
+        private async Task GenerateAndSendOtp(User user, string purpose)
         {
-            int userId = JwtHelper.ValidateAndGetUserId(
-                token,
-                GetJwtKey(),
-                "verify"
+            var otpCode = OtpGenerator.Generate();
+
+            var otp = new Otp
+            {
+                UserId = user.UserId,
+                Code = otpCode,
+                Purpose = purpose,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(10)
+            };
+
+            await _otpRepository.AddAsync(otp);
+            await _otpRepository.SaveAsync();
+
+            await _emailService.SendAsync(
+                user.Email!,
+                "OTP Verification",
+                $"Your OTP is {otpCode}. It expires in 10 minutes."
             );
-
-            var user = await _userRepository.GetByIdAsync(userId)
-                ?? throw new UnauthorizedException("Invalid token");
-
-            user.IsEmailVerified = true;
-            await _userRepository.SaveAsync();
         }
-
-        public async Task<string> ForgotPasswordAsync(string email)
+        public async Task ForgotPasswordAsync(string email)
         {
             var user = await _userRepository.GetByEmailAsync(email)
                 ?? throw new NotFoundException("User not found");
 
-            return JwtHelper.GenerateToken(
-                user.UserId,
-                user.Email!,
-                GetJwtKey(),
-                GetJwtIssuer(),
-                GetJwtAudience(),
-                15,
-                "reset"
-            );
+            await GenerateAndSendOtp(user, "reset");
         }
-
-        public async Task ResetPasswordAsync(string token, string newPassword)
+        public async Task ResetPasswordAsync(ResetPasswordDto dto)
         {
-            int userId = JwtHelper.ValidateAndGetUserId(
-                token,
-                GetJwtKey(),
+            var user = await _userRepository.GetByEmailAsync(dto.Email)
+                ?? throw new NotFoundException("User not found");
+
+            var otp = await _otpRepository.GetValidOtp(
+                user.UserId,
+                dto.Otp,
                 "reset"
             );
 
-            var user = await _userRepository.GetByIdAsync(userId)
-                ?? throw new UnauthorizedException("Invalid token");
+            otp.IsUsed = true;
 
-            PasswordHasher.CreateHash(newPassword, out var hash, out var salt);
+            PasswordHasher.CreateHash(dto.NewPassword, out var hash, out var salt);
 
             user.PasswordHash = hash;
             user.PasswordSalt = salt;
 
-            await _userRepository.SaveAsync();
+            await _otpRepository.SaveAsync();
         }
 
-        private string GetJwtKey() =>
-            _configuration["Jwt:Key"]
-                ?? throw new InvalidOperationException("JWT Key missing");
-
-        private string GetJwtIssuer() =>
-            _configuration["Jwt:Issuer"]
-                ?? throw new InvalidOperationException("JWT Issuer missing");
-
-        private string GetJwtAudience() =>
-            _configuration["Jwt:Audience"]
-                ?? throw new InvalidOperationException("JWT Audience missing");
-
-        private int GetJwtExpiry() =>
-            int.Parse(
-                _configuration["Jwt:ExpiresInMinutes"]
-                    ?? throw new InvalidOperationException("JWT Expiry missing")
-            );
+        private string GetJwtKey() => _configuration["Jwt:Key"]!;
+        private string GetJwtIssuer() => _configuration["Jwt:Issuer"]!;
+        private string GetJwtAudience() => _configuration["Jwt:Audience"]!;
+        private int GetJwtExpiry() => int.Parse(_configuration["Jwt:ExpiresInMinutes"]!);
     }
 }
