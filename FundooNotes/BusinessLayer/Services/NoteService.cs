@@ -83,5 +83,18 @@ namespace BusinessLayer.Services
             await _noteRepository.UpdateAsync(note);
             await _noteRepository.SaveAsync();
         }
+        public async Task ToggleArchiveAsync(int noteId, int userId)
+        {
+            var note = await _noteRepository.GetByIdAsync(noteId, userId);
+
+            if (note == null)
+                throw new NotFoundException("Note not found");
+
+            note.IsArchived = !note.IsArchived;
+            note.UpdatedAt = DateTime.UtcNow;
+
+            await _noteRepository.UpdateAsync(note);
+            await _noteRepository.SaveAsync();
+        }
     }
 }

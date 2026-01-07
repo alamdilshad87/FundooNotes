@@ -100,5 +100,20 @@ namespace FundooNotes.Controllers
                 message = "Pin status updated successfully"
             });
         }
+
+        [HttpPatch("{id}/archive")]
+        public async Task<IActionResult> ToggleArchive(int id)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            await _noteService.ToggleArchiveAsync(id, userId);
+
+            return Ok(new
+            {
+                message = "Archive status updated successfully"
+            });
+        }
     }
 }
