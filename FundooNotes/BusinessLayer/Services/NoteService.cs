@@ -96,5 +96,19 @@ namespace BusinessLayer.Services
             await _noteRepository.UpdateAsync(note);
             await _noteRepository.SaveAsync();
         }
+        public async Task UpdateNoteColorAsync(int noteId, UpdateNoteColorDto dto, int userId)
+        {
+            var note = await _noteRepository.GetByIdAsync(noteId, userId);
+
+            if (note == null)
+                throw new NotFoundException("Note not found");
+
+            note.Color = dto.Color;
+            note.UpdatedAt = DateTime.UtcNow;
+
+            await _noteRepository.UpdateAsync(note);
+            await _noteRepository.SaveAsync();
+        }
+
     }
 }

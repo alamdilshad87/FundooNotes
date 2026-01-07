@@ -115,5 +115,20 @@ namespace FundooNotes.Controllers
                 message = "Archive status updated successfully"
             });
         }
+
+        [HttpPatch("{id}/color")]
+        public async Task<IActionResult> UpdateColor(int id, [FromBody] UpdateNoteColorDto dto)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            await _noteService.UpdateNoteColorAsync(id, dto, userId);
+
+            return Ok(new
+            {
+                message = "Note color updated successfully"
+            });
+        }
     }
 }
