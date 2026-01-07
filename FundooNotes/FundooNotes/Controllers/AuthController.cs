@@ -72,7 +72,6 @@ namespace FundooNotes.Controllers
             });
         }
 
-
         [Authorize]
         [HttpGet("secure")]
         public IActionResult Secure()

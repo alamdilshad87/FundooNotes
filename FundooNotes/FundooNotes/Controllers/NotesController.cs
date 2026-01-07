@@ -32,5 +32,16 @@ namespace FundooNotes.Controllers
                 message = "Note created successfully"
             });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllNotes()
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+            var notes = await _noteService.GetAllNotesAsync(userId);
+
+            return Ok(notes);
+        }
     }
 }

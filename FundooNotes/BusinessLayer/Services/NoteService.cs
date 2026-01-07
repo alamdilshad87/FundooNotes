@@ -27,5 +27,9 @@ namespace BusinessLayer.Services
             await _noteRepository.AddAsync(note);
             await _noteRepository.SaveAsync();
         }
+        public async Task<List<Note>> GetAllNotesAsync(int userId)
+        {
+            return await _noteRepository.GetAllByUserAsync(userId);
+        }
     }
 }
