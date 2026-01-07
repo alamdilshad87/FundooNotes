@@ -8,7 +8,7 @@ namespace BusinessLayer.Interfaces
         Task CreateNoteAsync(CreateNoteDto dto, int userId);
         Task<List<Note>> GetAllNotesAsync(int userId);
         Task<Note> GetNoteByIdAsync(int noteId, int userId);
-
+        Task UpdateNoteAsync(int noteId, UpdateNoteDto dto, int userId);
 
     }
 }

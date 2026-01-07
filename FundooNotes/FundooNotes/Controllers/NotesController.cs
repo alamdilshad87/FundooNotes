@@ -55,5 +55,21 @@ namespace FundooNotes.Controllers
 
             return Ok(note);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateNote(int id, [FromBody] UpdateNoteDto dto)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            await _noteService.UpdateNoteAsync(id, dto, userId);
+
+            return Ok(new
+            {
+                message = "Note updated successfully"
+            });
+        }
+
     }
 }
