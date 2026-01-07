@@ -86,6 +86,19 @@ namespace FundooNotes.Controllers
             });
         }
 
+        [HttpPatch("{id}/pin")]
+        public async Task<IActionResult> TogglePin(int id)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
 
+            await _noteService.TogglePinAsync(id, userId);
+
+            return Ok(new
+            {
+                message = "Pin status updated successfully"
+            });
+        }
     }
 }

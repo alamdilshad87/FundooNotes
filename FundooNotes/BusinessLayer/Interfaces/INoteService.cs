@@ -10,6 +10,8 @@ namespace BusinessLayer.Interfaces
         Task<Note> GetNoteByIdAsync(int noteId, int userId);
         Task UpdateNoteAsync(int noteId, UpdateNoteDto dto, int userId);
         Task DeleteNoteAsync(int noteId, int userId);
+        Task TogglePinAsync(int noteId, int userId);
+
 
     }
 }
