@@ -1,20 +1,22 @@
-using BusinessLayer.Interfaces;
+﻿using BusinessLayer.Interfaces;
 using BusinessLayer.Services;
 using DataBaseLayer.Context;
 using DataBaseLayer.Repositories.Implementations;
 using DataBaseLayer.Repositories.Interfaces;
 using FundooNotes.Middleware;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
+// ================= CONTROLLERS =================
 builder.Services.AddControllers();
 
+// ================= SWAGGER =================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -24,13 +26,17 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1"
     });
 
+    // 🔐 JWT Support in Swagger (Swashbuckle 8.x compatible)
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
+        Description =
+            "JWT Authorization header using the Bearer scheme.\n\n" +
+            "Enter 'Bearer' [space] and then your token.\n\n" +
+            "Example: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\"",
+        Name = "Authorization",
         In = ParameterLocation.Header,
-        Description = "Enter JWT token as: Bearer {token}"
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -49,22 +55,24 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
-
+// ================= DATABASE =================
 builder.Services.AddDbContext<FundooNotesDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
 
-
+// ================= REPOSITORIES =================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOtpRepository, OtpRepository>();
+builder.Services.AddScoped<INoteRepository, NoteRepository>();
 
+// ================= SERVICES =================
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<INoteService, NoteService>();
 
-
+// ================= JWT AUTH =================
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
@@ -86,6 +94,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
+// ================= MIDDLEWARE =================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
