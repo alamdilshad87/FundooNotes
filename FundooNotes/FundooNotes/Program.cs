@@ -65,13 +65,13 @@ builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<INoteTemplateRepository, NoteTemplateRepository>();
 builder.Services.AddScoped<INoteHistoryRepository, NoteHistoryRepository>();
 builder.Services.AddScoped<ILabelRepository, LabelRepository>();
-builder.Services.AddScoped<ILabelService, LabelService>();
+
 
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<INoteService, NoteService>();
-
+builder.Services.AddScoped<ILabelService, LabelService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
