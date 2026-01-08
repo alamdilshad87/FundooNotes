@@ -142,5 +142,47 @@ namespace FundooNotes.Controllers
 
             return Ok(notes);
         }
+
+        [HttpDelete("bulk")]
+        public async Task<IActionResult> BulkDelete([FromBody] BulkDeleteDto dto)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            await _noteService.BulkDeleteAsync(dto.NoteIds, userId);
+
+            return Ok(new
+            {
+                message = "Notes deleted successfully"
+            });
+        }
+
+        [HttpPost("from-template/{templateId}")]
+        public async Task<IActionResult> CreateFromTemplate(int templateId)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            await _noteService.CreateFromTemplateAsync(templateId, userId);
+
+            return Ok(new
+            {
+                message = "Note created from template"
+            });
+        }
+
+        [HttpGet("{id}/history")]
+        public async Task<IActionResult> GetNoteHistory(int id)
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            var history = await _noteService.GetNoteHistoryAsync(id, userId);
+
+            return Ok(history);
+        }
     }
 }

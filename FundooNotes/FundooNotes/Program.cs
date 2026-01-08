@@ -13,10 +13,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ================= CONTROLLERS =================
 builder.Services.AddControllers();
 
-// ================= SWAGGER =================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -26,7 +24,6 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1"
     });
 
-    // 🔐 JWT Support in Swagger (Swashbuckle 8.x compatible)
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description =
@@ -55,24 +52,26 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// ================= DATABASE =================
 builder.Services.AddDbContext<FundooNotesDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
 
-// ================= REPOSITORIES =================
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOtpRepository, OtpRepository>();
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
+builder.Services.AddScoped<INoteTemplateRepository, NoteTemplateRepository>();
+builder.Services.AddScoped<INoteHistoryRepository, NoteHistoryRepository>();
 
-// ================= SERVICES =================
+
+
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<INoteService, NoteService>();
 
-// ================= JWT AUTH =================
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
@@ -94,7 +93,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-// ================= MIDDLEWARE =================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

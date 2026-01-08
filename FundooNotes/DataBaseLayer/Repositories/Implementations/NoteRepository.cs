@@ -58,6 +58,15 @@ namespace DataBaseLayer.Repositories.Implementations
                 .OrderByDescending(n => n.UpdatedAt)
                 .ToListAsync();
         }
-
+        public async Task<List<Note>> GetByIdsAsync(List<int> noteIds, int userId)
+        {
+            return await _context.Notes
+                .Where(n =>
+                    noteIds.Contains(n.NoteId) &&
+                    n.UserId == userId &&
+                    !n.IsDeleted
+                )
+                .ToListAsync();
+        }
     }
 }

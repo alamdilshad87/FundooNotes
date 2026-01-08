@@ -14,6 +14,9 @@ namespace BusinessLayer.Interfaces
         Task ToggleArchiveAsync(int noteId, int userId);
         Task UpdateNoteColorAsync(int noteId, UpdateNoteColorDto dto, int userId);
         Task<List<Note>> SearchNotesAsync(int userId, string query);
+        Task BulkDeleteAsync(List<int> noteIds, int userId);
+        Task CreateFromTemplateAsync(int templateId, int userId);
+        Task<List<NoteHistory>> GetNoteHistoryAsync(int noteId, int userId);
 
     }
 }

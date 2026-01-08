@@ -10,6 +10,9 @@ namespace DataBaseLayer.Repositories.Interfaces
         Task UpdateAsync(Note note);
         Task SaveAsync();
         Task<List<Note>> SearchAsync(int userId, string query);
+        Task<List<Note>> GetByIdsAsync(List<int> noteIds, int userId);
+
+
 
     }
 }
