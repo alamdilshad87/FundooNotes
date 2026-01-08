@@ -12,6 +12,7 @@ namespace DataBaseLayer.Context
         public DbSet<Note> Notes { get; set; }
         public DbSet<NoteTemplate> NoteTemplates { get; set; }
         public DbSet<NoteHistory> NoteHistories { get; set; }
+        public DbSet<Label> Labels { get; set; }
 
     }
 }

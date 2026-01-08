@@ -64,7 +64,8 @@ builder.Services.AddScoped<IOtpRepository, OtpRepository>();
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<INoteTemplateRepository, NoteTemplateRepository>();
 builder.Services.AddScoped<INoteHistoryRepository, NoteHistoryRepository>();
-
+builder.Services.AddScoped<ILabelRepository, LabelRepository>();
+builder.Services.AddScoped<ILabelService, LabelService>();
 
 
 builder.Services.AddScoped<IEmailService, EmailService>();
