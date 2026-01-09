@@ -26,5 +26,8 @@ namespace DataBaseLayer.Entities
 
         [ForeignKey("UserId")]
         public User User { get; set; } = null!;
+        public ICollection<NoteLabel> NoteLabels { get; set; } = new List<NoteLabel>();
+        public ICollection<Collaborator> Collaborators { get; set; } = new List<Collaborator>();
+
     }
 }

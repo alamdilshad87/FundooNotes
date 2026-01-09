@@ -1,7 +1,6 @@
 ﻿using DataBaseLayer.Context;
 using DataBaseLayer.Entities;
 using DataBaseLayer.Repositories.Interfaces;
-
 using Microsoft.EntityFrameworkCore;
 
 namespace DataBaseLayer.Repositories.Implementations
@@ -23,6 +22,9 @@ namespace DataBaseLayer.Repositories.Implementations
         public async Task<List<Note>> GetAllByUserAsync(int userId)
         {
             return await _context.Notes
+                .AsNoTracking()
+                .Include(n => n.NoteLabels)
+                    .ThenInclude(nl => nl.Label)
                 .Where(n => n.UserId == userId && !n.IsDeleted)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
@@ -31,6 +33,9 @@ namespace DataBaseLayer.Repositories.Implementations
         public async Task<Note?> GetByIdAsync(int noteId, int userId)
         {
             return await _context.Notes
+                .AsNoTracking()
+                .Include(n => n.NoteLabels)
+                    .ThenInclude(nl => nl.Label)
                 .FirstOrDefaultAsync(n =>
                     n.NoteId == noteId &&
                     n.UserId == userId &&
@@ -47,9 +52,13 @@ namespace DataBaseLayer.Repositories.Implementations
         {
             await _context.SaveChangesAsync();
         }
+
         public async Task<List<Note>> SearchAsync(int userId, string query)
         {
             return await _context.Notes
+                .AsNoTracking()
+                .Include(n => n.NoteLabels)
+                    .ThenInclude(nl => nl.Label)
                 .Where(n =>
                     n.UserId == userId &&
                     !n.IsDeleted &&
@@ -58,9 +67,13 @@ namespace DataBaseLayer.Repositories.Implementations
                 .OrderByDescending(n => n.UpdatedAt)
                 .ToListAsync();
         }
+
         public async Task<List<Note>> GetByIdsAsync(List<int> noteIds, int userId)
         {
             return await _context.Notes
+                .AsNoTracking()
+                .Include(n => n.NoteLabels)
+                    .ThenInclude(nl => nl.Label)
                 .Where(n =>
                     noteIds.Contains(n.NoteId) &&
                     n.UserId == userId &&

@@ -12,11 +12,14 @@ namespace BusinessLayer.Services
         private readonly INoteTemplateRepository _templateRepository;
         private readonly INoteHistoryRepository _historyRepository;
 
-        public NoteService(INoteRepository noteRepository, INoteTemplateRepository templateRepository, INoteHistoryRepository noteHistoryRepository)
+        public NoteService(
+            INoteRepository noteRepository,
+            INoteTemplateRepository templateRepository,
+            INoteHistoryRepository historyRepository)
         {
             _noteRepository = noteRepository;
             _templateRepository = templateRepository;
-            _historyRepository = noteHistoryRepository;
+            _historyRepository = historyRepository;
         }
 
         public async Task CreateNoteAsync(CreateNoteDto dto, int userId)
@@ -32,25 +35,25 @@ namespace BusinessLayer.Services
             await _noteRepository.AddAsync(note);
             await _noteRepository.SaveAsync();
         }
-        public async Task<List<Note>> GetAllNotesAsync(int userId)
-        {
-            return await _noteRepository.GetAllByUserAsync(userId);
-        }
-        public async Task<Note> GetNoteByIdAsync(int noteId, int userId)
-        {
-            var note = await _noteRepository.GetByIdAsync(noteId, userId);
 
-            if (note == null)
-                throw new NotFoundException("Note not found");
-
-            return note;
+        public async Task<List<NoteResponseDto>> GetAllNotesAsync(int userId)
+        {
+            var notes = await _noteRepository.GetAllByUserAsync(userId);
+            return notes.Select(MapToDto).ToList();
         }
+
+        public async Task<NoteResponseDto> GetNoteByIdAsync(int noteId, int userId)
+        {
+            var note = await _noteRepository.GetByIdAsync(noteId, userId)
+                ?? throw new NotFoundException("Note not found");
+
+            return MapToDto(note);
+        }
+
         public async Task UpdateNoteAsync(int noteId, UpdateNoteDto dto, int userId)
         {
-            var note = await _noteRepository.GetByIdAsync(noteId, userId);
-
-            if (note == null)
-                throw new NotFoundException("Note not found");
+            var note = await _noteRepository.GetByIdAsync(noteId, userId)
+                ?? throw new NotFoundException("Note not found");
 
             await SaveHistory(note);
 
@@ -65,10 +68,8 @@ namespace BusinessLayer.Services
 
         public async Task DeleteNoteAsync(int noteId, int userId)
         {
-            var note = await _noteRepository.GetByIdAsync(noteId, userId);
-
-            if (note == null)
-                throw new NotFoundException("Note not found");
+            var note = await _noteRepository.GetByIdAsync(noteId, userId)
+                ?? throw new NotFoundException("Note not found");
 
             await SaveHistory(note);
 
@@ -78,12 +79,11 @@ namespace BusinessLayer.Services
             await _noteRepository.UpdateAsync(note);
             await _noteRepository.SaveAsync();
         }
+
         public async Task TogglePinAsync(int noteId, int userId)
         {
-            var note = await _noteRepository.GetByIdAsync(noteId, userId);
-
-            if (note == null)
-                throw new NotFoundException("Note not found");
+            var note = await _noteRepository.GetByIdAsync(noteId, userId)
+                ?? throw new NotFoundException("Note not found");
 
             await SaveHistory(note);
 
@@ -93,27 +93,26 @@ namespace BusinessLayer.Services
             await _noteRepository.UpdateAsync(note);
             await _noteRepository.SaveAsync();
         }
+
         public async Task ToggleArchiveAsync(int noteId, int userId)
         {
-            var note = await _noteRepository.GetByIdAsync(noteId, userId);
-
-            if (note == null)
-                throw new NotFoundException("Note not found");
+            var note = await _noteRepository.GetByIdAsync(noteId, userId)
+                ?? throw new NotFoundException("Note not found");
 
             await SaveHistory(note);
 
             note.IsArchived = !note.IsArchived;
+            note.IsPinned = false;
             note.UpdatedAt = DateTime.UtcNow;
 
             await _noteRepository.UpdateAsync(note);
             await _noteRepository.SaveAsync();
         }
+
         public async Task UpdateNoteColorAsync(int noteId, UpdateNoteColorDto dto, int userId)
         {
-            var note = await _noteRepository.GetByIdAsync(noteId, userId);
-
-            if (note == null)
-                throw new NotFoundException("Note not found");
+            var note = await _noteRepository.GetByIdAsync(noteId, userId)
+                ?? throw new NotFoundException("Note not found");
 
             await SaveHistory(note);
 
@@ -123,13 +122,16 @@ namespace BusinessLayer.Services
             await _noteRepository.UpdateAsync(note);
             await _noteRepository.SaveAsync();
         }
-        public async Task<List<Note>> SearchNotesAsync(int userId, string query)
+
+        public async Task<List<NoteResponseDto>> SearchNotesAsync(int userId, string query)
         {
             if (string.IsNullOrWhiteSpace(query))
-                return new List<Note>();
+                return new List<NoteResponseDto>();
 
-            return await _noteRepository.SearchAsync(userId, query);
+            var notes = await _noteRepository.SearchAsync(userId, query);
+            return notes.Select(MapToDto).ToList();
         }
+
         public async Task BulkDeleteAsync(List<int> noteIds, int userId)
         {
             var notes = await _noteRepository.GetByIdsAsync(noteIds, userId);
@@ -137,19 +139,17 @@ namespace BusinessLayer.Services
             foreach (var note in notes)
             {
                 await SaveHistory(note);
-
                 note.IsDeleted = true;
                 note.UpdatedAt = DateTime.UtcNow;
             }
 
             await _noteRepository.SaveAsync();
         }
+
         public async Task CreateFromTemplateAsync(int templateId, int userId)
         {
-            var template = await _templateRepository.GetByIdAsync(templateId);
-
-            if (template == null)
-                throw new NotFoundException("Template not found");
+            var template = await _templateRepository.GetByIdAsync(templateId)
+                ?? throw new NotFoundException("Template not found");
 
             var note = new Note
             {
@@ -162,6 +162,15 @@ namespace BusinessLayer.Services
             await _noteRepository.AddAsync(note);
             await _noteRepository.SaveAsync();
         }
+
+        public async Task<List<NoteHistory>> GetNoteHistoryAsync(int noteId, int userId)
+        {
+            var note = await _noteRepository.GetByIdAsync(noteId, userId)
+                ?? throw new NotFoundException("Note not found");
+
+            return await _historyRepository.GetByNoteIdAsync(noteId, userId);
+        }
+
         private async Task SaveHistory(Note note)
         {
             var history = new NoteHistory
@@ -180,14 +189,21 @@ namespace BusinessLayer.Services
             await _historyRepository.AddAsync(history);
             await _historyRepository.SaveAsync();
         }
-        public async Task<List<NoteHistory>> GetNoteHistoryAsync(int noteId, int userId)
+
+        private static NoteResponseDto MapToDto(Note note)
         {
-            var note = await _noteRepository.GetByIdAsync(noteId, userId);
-
-            if (note == null)
-                throw new NotFoundException("Note not found");
-
-            return await _historyRepository.GetByNoteIdAsync(noteId, userId);
+            return new NoteResponseDto
+            {
+                NoteId = note.NoteId,
+                Title = note.Title,
+                Content = note.Content,
+                IsPinned = note.IsPinned,
+                IsArchived = note.IsArchived,
+                Color = note.Color,
+                Labels = note.NoteLabels
+                    .Select(nl => nl.Label.Name)
+                    .ToList()
+            };
         }
     }
 }

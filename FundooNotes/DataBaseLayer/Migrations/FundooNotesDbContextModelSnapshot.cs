@@ -173,6 +173,29 @@ namespace DataBaseLayer.Migrations
                     b.ToTable("NoteHistories");
                 });
 
+            modelBuilder.Entity("DataBaseLayer.Entities.NoteLabel", b =>
+                {
+                    b.Property<int>("NoteLabelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NoteLabelId"));
+
+                    b.Property<int>("LabelId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoteId")
+                        .HasColumnType("int");
+
+                    b.HasKey("NoteLabelId");
+
+                    b.HasIndex("LabelId");
+
+                    b.HasIndex("NoteId");
+
+                    b.ToTable("NoteLabels");
+                });
+
             modelBuilder.Entity("DataBaseLayer.Entities.NoteTemplate", b =>
                 {
                     b.Property<int>("TemplateId")
@@ -267,7 +290,7 @@ namespace DataBaseLayer.Migrations
             modelBuilder.Entity("DataBaseLayer.Entities.Collaborator", b =>
                 {
                     b.HasOne("DataBaseLayer.Entities.Note", "Note")
-                        .WithMany()
+                        .WithMany("Collaborators")
                         .HasForeignKey("NoteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -294,6 +317,25 @@ namespace DataBaseLayer.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DataBaseLayer.Entities.NoteLabel", b =>
+                {
+                    b.HasOne("DataBaseLayer.Entities.Label", "Label")
+                        .WithMany()
+                        .HasForeignKey("LabelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataBaseLayer.Entities.Note", "Note")
+                        .WithMany("NoteLabels")
+                        .HasForeignKey("NoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Label");
+
+                    b.Navigation("Note");
+                });
+
             modelBuilder.Entity("DataBaseLayer.Entities.Otp", b =>
                 {
                     b.HasOne("DataBaseLayer.Entities.User", "User")
@@ -303,6 +345,13 @@ namespace DataBaseLayer.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DataBaseLayer.Entities.Note", b =>
+                {
+                    b.Navigation("Collaborators");
+
+                    b.Navigation("NoteLabels");
                 });
 #pragma warning restore 612, 618
         }

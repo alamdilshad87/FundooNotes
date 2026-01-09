@@ -17,18 +17,29 @@ namespace DataBaseLayer.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Collaborator>()
+                .HasOne(c => c.Note)
+                .WithMany(n => n.Collaborators)
+                .HasForeignKey(c => c.NoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Collaborator>()
                 .HasOne(c => c.User)
                 .WithMany()
                 .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<Collaborator>()
-                .HasOne(c => c.Note)
+            modelBuilder.Entity<NoteLabel>()
+                .HasOne(nl => nl.Note)
+                .WithMany(n => n.NoteLabels)
+                .HasForeignKey(nl => nl.NoteId);
+
+            modelBuilder.Entity<NoteLabel>()
+                .HasOne(nl => nl.Label)
                 .WithMany()
-                .HasForeignKey(c => c.NoteId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(nl => nl.LabelId);
 
             base.OnModelCreating(modelBuilder);
         }
+        public DbSet<NoteLabel> NoteLabels { get; set; }
     }
 }

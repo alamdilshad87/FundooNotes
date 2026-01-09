@@ -15,6 +15,7 @@ namespace DataBaseLayer.Entities
         public string Permission { get; set; } = "Read";
 
         public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+
         public Note Note { get; set; } = null!;
         public User User { get; set; } = null!;
     }

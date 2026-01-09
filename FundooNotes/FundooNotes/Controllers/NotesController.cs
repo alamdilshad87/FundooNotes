@@ -18,6 +18,7 @@ namespace FundooNotes.Controllers
             _noteService = noteService;
         }
 
+
         [HttpPost]
         public async Task<IActionResult> CreateNote([FromBody] CreateNoteDto dto)
         {
@@ -39,10 +40,13 @@ namespace FundooNotes.Controllers
             int userId = int.Parse(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)!
             );
-            var notes = await _noteService.GetAllNotesAsync(userId);
+
+            List<NoteResponseDto> notes =
+                await _noteService.GetAllNotesAsync(userId);
 
             return Ok(notes);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetNoteById(int id)
@@ -51,13 +55,17 @@ namespace FundooNotes.Controllers
                 User.FindFirstValue(ClaimTypes.NameIdentifier)!
             );
 
-            var note = await _noteService.GetNoteByIdAsync(id, userId);
+            NoteResponseDto note =
+                await _noteService.GetNoteByIdAsync(id, userId);
 
             return Ok(note);
         }
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateNote(int id, [FromBody] UpdateNoteDto dto)
+        public async Task<IActionResult> UpdateNote(
+            int id,
+            [FromBody] UpdateNoteDto dto)
         {
             int userId = int.Parse(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)!
@@ -70,6 +78,7 @@ namespace FundooNotes.Controllers
                 message = "Note updated successfully"
             });
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteNote(int id)
@@ -117,7 +126,9 @@ namespace FundooNotes.Controllers
         }
 
         [HttpPatch("{id}/color")]
-        public async Task<IActionResult> UpdateColor(int id, [FromBody] UpdateNoteColorDto dto)
+        public async Task<IActionResult> UpdateColor(
+            int id,
+            [FromBody] UpdateNoteColorDto dto)
         {
             int userId = int.Parse(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)!
@@ -131,6 +142,7 @@ namespace FundooNotes.Controllers
             });
         }
 
+
         [HttpGet("search")]
         public async Task<IActionResult> SearchNotes([FromQuery] string query)
         {
@@ -138,10 +150,12 @@ namespace FundooNotes.Controllers
                 User.FindFirstValue(ClaimTypes.NameIdentifier)!
             );
 
-            var notes = await _noteService.SearchNotesAsync(userId, query);
+            List<NoteResponseDto> notes =
+                await _noteService.SearchNotesAsync(userId, query);
 
             return Ok(notes);
         }
+
 
         [HttpDelete("bulk")]
         public async Task<IActionResult> BulkDelete([FromBody] BulkDeleteDto dto)
@@ -172,6 +186,7 @@ namespace FundooNotes.Controllers
                 message = "Note created from template"
             });
         }
+
 
         [HttpGet("{id}/history")]
         public async Task<IActionResult> GetNoteHistory(int id)
