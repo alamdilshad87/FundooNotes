@@ -19,10 +19,11 @@ namespace FundooNotes.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            await _authService.RegisterAsync(dto);
+            var otpSessionId = await _authService.RegisterAsync(dto);
 
             return Ok(new
             {
+                otpSessionId,
                 message = "Registration successful. OTP sent to email."
             });
         }
@@ -30,10 +31,11 @@ namespace FundooNotes.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            await _authService.LoginAsync(dto);
+            var otpSessionId = await _authService.LoginAsync(dto);
 
             return Ok(new
             {
+                otpSessionId,
                 message = "OTP sent to email for login verification."
             });
         }

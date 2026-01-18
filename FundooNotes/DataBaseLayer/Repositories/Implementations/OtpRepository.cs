@@ -3,6 +3,7 @@ using DataBaseLayer.Entities;
 using DataBaseLayer.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using ModelLayer.Exceptions;
+using System;
 
 namespace DataBaseLayer.Repositories.Implementations
 {
@@ -20,20 +21,53 @@ namespace DataBaseLayer.Repositories.Implementations
             await _context.Otps.AddAsync(otp);
         }
 
-        public async Task<Otp> GetValidOtp(int userId, string code, string purpose)
-        {
-            return await _context.Otps.FirstOrDefaultAsync(o =>
-                o.UserId == userId &&
-                o.Code == code &&
-                o.Purpose == purpose &&
-                !o.IsUsed &&
-                o.ExpiresAt > DateTime.UtcNow
-            ) ?? throw new UnauthorizedException("Invalid or expired OTP");
-        }
-
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<Otp> GetValidOtp(
+            int userId,
+            string otp,
+            string purpose
+        )
+        {
+            var otpEntity = await _context.Otps
+                .Where(o =>
+                    o.UserId == userId &&
+                    o.Code == otp &&
+                    o.Purpose == purpose &&
+                    !o.IsUsed &&
+                    o.ExpiresAt > DateTime.UtcNow
+                )
+                .FirstOrDefaultAsync();
+
+            if (otpEntity == null)
+                throw new ValidationException("Invalid or expired OTP");
+
+            return otpEntity;
+        }
+
+        public async Task<Otp> GetValidOtpBySession(
+            string otpSessionId,
+            string otp,
+            string purpose
+        )
+        {
+            var otpEntity = await _context.Otps
+                .Where(o =>
+                    o.OtpSessionId == otpSessionId &&
+                    o.Code == otp &&
+                    o.Purpose == purpose &&
+                    !o.IsUsed &&
+                    o.ExpiresAt > DateTime.UtcNow
+                )
+                .FirstOrDefaultAsync();
+
+            if (otpEntity == null)
+                throw new ValidationException("Invalid or expired OTP");
+
+            return otpEntity;
         }
     }
 }

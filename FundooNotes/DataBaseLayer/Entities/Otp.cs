@@ -4,6 +4,7 @@
     {
         public int OtpId { get; set; }
         public int UserId { get; set; }
+        public string OtpSessionId { get; set; } = null!;
         public string Code { get; set; } = null!;
         public string Purpose { get; set; } = null!;
         public DateTime ExpiresAt { get; set; }

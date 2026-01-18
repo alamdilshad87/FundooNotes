@@ -13,5 +13,6 @@ namespace ModelLayer.DTOs.Auth
 
         [Required]
         public string Purpose { get; set; } = null!;
+        public string OtpSessionId { get; set; } = null!;
     }
 }

@@ -27,7 +27,7 @@ namespace BusinessLayer.Services
             _configuration = configuration;
         }
 
-        public async Task RegisterAsync(RegisterDto dto)
+        public async Task<string> RegisterAsync(RegisterDto dto)
         {
             if (await _userRepository.GetByEmailAsync(dto.Email) != null)
                 throw new ValidationException("Email already registered");
@@ -47,10 +47,11 @@ namespace BusinessLayer.Services
             await _userRepository.AddAsync(user);
             await _userRepository.SaveAsync();
 
-            await GenerateAndSendOtp(user, "verify");
+            var otpSessionId = await GenerateAndSendOtp(user, "verify");
+            return otpSessionId;
         }
 
-        public async Task LoginAsync(LoginDto dto)
+        public async Task<string> LoginAsync(LoginDto dto)
         {
             var user = await _userRepository.GetByEmailAsync(dto.Email)
                 ?? throw new UnauthorizedException("Invalid credentials");
@@ -61,7 +62,8 @@ namespace BusinessLayer.Services
             if (!user.IsEmailVerified)
                 throw new UnauthorizedException("Email not verified");
 
-            await GenerateAndSendOtp(user, "login");
+            var otpSessionId = await GenerateAndSendOtp(user, "login");
+            return otpSessionId;
         }
 
         public async Task<string> VerifyOtpAsync(VerifyOtpDto dto)
@@ -69,8 +71,8 @@ namespace BusinessLayer.Services
             var user = await _userRepository.GetByEmailAsync(dto.Email)
                 ?? throw new NotFoundException("User not found");
 
-            var otp = await _otpRepository.GetValidOtp(
-                user.UserId,
+            var otp = await _otpRepository.GetValidOtpBySession(
+                dto.OtpSessionId,
                 dto.Otp,
                 dto.Purpose
             );
@@ -93,34 +95,14 @@ namespace BusinessLayer.Services
             );
         }
 
-        private async Task GenerateAndSendOtp(User user, string purpose)
-        {
-            var otpCode = OtpGenerator.Generate();
-
-            var otp = new Otp
-            {
-                UserId = user.UserId,
-                Code = otpCode,
-                Purpose = purpose,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10)
-            };
-
-            await _otpRepository.AddAsync(otp);
-            await _otpRepository.SaveAsync();
-
-            await _emailService.SendAsync(
-                user.Email!,
-                "OTP Verification",
-                $"Your OTP is {otpCode}. It expires in 10 minutes."
-            );
-        }
         public async Task ForgotPasswordAsync(string email)
         {
             var user = await _userRepository.GetByEmailAsync(email)
                 ?? throw new NotFoundException("User not found");
 
-            await GenerateAndSendOtp(user, "reset");
+            _ = await GenerateAndSendOtp(user, "reset");
         }
+
         public async Task ResetPasswordAsync(ResetPasswordDto dto)
         {
             var user = await _userRepository.GetByEmailAsync(dto.Email)
@@ -140,6 +122,33 @@ namespace BusinessLayer.Services
             user.PasswordSalt = salt;
 
             await _otpRepository.SaveAsync();
+        }
+
+        private async Task<string> GenerateAndSendOtp(User user, string purpose)
+        {
+            var otpCode = OtpGenerator.Generate();
+            var otpSessionId = Guid.NewGuid().ToString();
+
+            var otp = new Otp
+            {
+                UserId = user.UserId,
+                OtpSessionId = otpSessionId,
+                Code = otpCode,
+                Purpose = purpose,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+                IsUsed = false
+            };
+
+            await _otpRepository.AddAsync(otp);
+            await _otpRepository.SaveAsync();
+
+            await _emailService.SendAsync(
+                user.Email!,
+                "OTP Verification",
+                $"Your OTP is {otpCode}. It expires in 10 minutes."
+            );
+
+            return otpSessionId;
         }
 
         private string GetJwtKey() => _configuration["Jwt:Key"]!;
