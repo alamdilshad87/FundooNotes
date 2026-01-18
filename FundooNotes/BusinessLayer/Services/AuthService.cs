@@ -29,14 +29,15 @@ namespace BusinessLayer.Services
 
         public async Task RegisterAsync(RegisterDto dto)
         {
-            var user = await _userRepository.GetByEmailAsync(dto.Email);
-            if (user != null)
-                throw new ValidationException("User already exists");
+            if (await _userRepository.GetByEmailAsync(dto.Email) != null)
+                throw new ValidationException("Email already registered");
 
             PasswordHasher.CreateHash(dto.Password, out var hash, out var salt);
 
-            user = new User
+            var user = new User
             {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
                 Email = dto.Email,
                 PasswordHash = hash,
                 PasswordSalt = salt,

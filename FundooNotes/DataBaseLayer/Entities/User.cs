@@ -7,15 +7,20 @@ namespace DataBaseLayer.Entities
         [Key]
         public int UserId { get; set; }
 
-        [Required]
-        [EmailAddress]
-        public string? Email { get; set; } = null;
+        [Required, MaxLength(50)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required, MaxLength(50)]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
 
         [Required]
-        public string? PasswordHash { get; set; } = null;
+        public string PasswordHash { get; set; } = null!;
 
         [Required]
-        public string? PasswordSalt { get; set; } = null;
+        public string PasswordSalt { get; set; } = null!;
 
         public bool IsEmailVerified { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
