@@ -132,11 +132,10 @@ namespace BusinessLayer.Services
             var otp = new Otp
             {
                 UserId = user.UserId,
-                OtpSessionId = otpSessionId,
                 Code = otpCode,
                 Purpose = purpose,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
-                IsUsed = false
+                OtpSessionId = otpSessionId,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(10)
             };
 
             await _otpRepository.AddAsync(otp);
@@ -147,6 +146,16 @@ namespace BusinessLayer.Services
                 "OTP Verification",
                 $"Your OTP is {otpCode}. It expires in 10 minutes."
             );
+
+            return otpSessionId;
+        }
+
+        public async Task<string> ResendOtpAsync(string email, string purpose)
+        {
+            var user = await _userRepository.GetByEmailAsync(email)
+                ?? throw new NotFoundException("User not found");
+
+            var otpSessionId = await GenerateAndSendOtp(user, purpose);
 
             return otpSessionId;
         }

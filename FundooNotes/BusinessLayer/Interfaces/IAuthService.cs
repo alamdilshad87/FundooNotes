@@ -9,5 +9,6 @@ namespace BusinessLayer.Interfaces
         Task<string> VerifyOtpAsync(VerifyOtpDto dto);
         Task ForgotPasswordAsync(string email);
         Task ResetPasswordAsync(ResetPasswordDto dto);
+        Task<string> ResendOtpAsync(string email, string purpose);
     }
 }

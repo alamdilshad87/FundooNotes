@@ -52,6 +52,22 @@ namespace FundooNotes.Controllers
             });
         }
 
+        [HttpPost("resend-otp")]
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto dto)
+        {
+            await _authService.ResendOtpAsync(dto.Email, dto.Purpose);
+
+            var otpSessionId = await _authService.ResendOtpAsync(dto.Email, dto.Purpose);
+
+            return Ok(new
+            {
+                otpSessionId,
+                message = "OTP resent successfully"
+            });
+
+        }
+
+
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
