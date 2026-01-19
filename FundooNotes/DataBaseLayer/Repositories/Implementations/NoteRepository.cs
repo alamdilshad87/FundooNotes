@@ -33,7 +33,6 @@ namespace DataBaseLayer.Repositories.Implementations
         public async Task<Note?> GetByIdAsync(int noteId, int userId)
         {
             return await _context.Notes
-                .AsNoTracking()
                 .Include(n => n.NoteLabels)
                     .ThenInclude(nl => nl.Label)
                 .FirstOrDefaultAsync(n =>
