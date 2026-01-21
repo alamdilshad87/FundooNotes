@@ -11,6 +11,8 @@ namespace ModelLayer.DTOs.Notes
 
         public string Color { get; set; } = "white";
 
-        public bool IsArchived { get; set; } = false; // ✅ ADD THIS
+        public bool IsArchived { get; set; } = false;
+
+        public bool IsPinned { get; set; } = false; // ✅ ADD THIS
     }
 }

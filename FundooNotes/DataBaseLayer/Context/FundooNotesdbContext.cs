@@ -14,8 +14,50 @@ namespace DataBaseLayer.Context
         public DbSet<NoteHistory> NoteHistories { get; set; }
         public DbSet<Label> Labels { get; set; }
         public DbSet<Collaborator> Collaborators { get; set; }
+        public DbSet<NoteLabel> NoteLabels { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // ✅ ADD THIS - Configure Note entity explicitly
+            modelBuilder.Entity<Note>(entity =>
+            {
+                entity.HasKey(e => e.NoteId);
+
+                entity.Property(e => e.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(e => e.Content)
+                    .IsRequired(false);
+
+                entity.Property(e => e.IsPinned)
+                    .IsRequired()
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.IsArchived)
+                    .IsRequired()
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.IsDeleted)
+                    .IsRequired()
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.Color)
+                    .HasMaxLength(20)
+                    .HasDefaultValue("white");
+
+                entity.Property(e => e.CreatedAt)
+                    .IsRequired();
+
+                entity.Property(e => e.UpdatedAt)
+                    .IsRequired();
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<Collaborator>()
                 .HasOne(c => c.Note)
                 .WithMany(n => n.Collaborators)
@@ -40,6 +82,5 @@ namespace DataBaseLayer.Context
 
             base.OnModelCreating(modelBuilder);
         }
-        public DbSet<NoteLabel> NoteLabels { get; set; }
     }
 }
