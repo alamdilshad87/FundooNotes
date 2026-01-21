@@ -29,12 +29,14 @@ namespace BusinessLayer.Services
                 Title = dto.Title,
                 Content = dto.Content,
                 Color = dto.Color,
+                IsArchived = dto.IsArchived, // ✅ ADD THIS LINE
                 UserId = userId
             };
 
             await _noteRepository.AddAsync(note);
             await _noteRepository.SaveAsync();
         }
+
 
         public async Task<List<NoteResponseDto>> GetAllNotesAsync(int userId)
         {
