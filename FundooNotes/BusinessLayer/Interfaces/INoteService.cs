@@ -22,5 +22,10 @@ namespace BusinessLayer.Interfaces
         Task CreateFromTemplateAsync(int templateId, int userId);
 
         Task<List<NoteHistory>> GetNoteHistoryAsync(int noteId, int userId);
+
+        Task<List<NoteResponseDto>> GetTrashedNotesAsync(int userId);
+        Task RestoreNoteAsync(int noteId, int userId);
+        Task PermanentDeleteNoteAsync(int noteId, int userId);
+        Task<List<NoteResponseDto>> GetArchivedNotesAsync(int userId);
     }
 }

@@ -80,6 +80,48 @@ namespace BusinessLayer.Services
             await _noteRepository.SaveAsync();
         }
 
+        public async Task<List<NoteResponseDto>> GetTrashedNotesAsync(int userId)
+        {
+            var notes = await _noteRepository.GetAllByUserAsync(userId);
+            var trashedNotes = notes.Where(n => n.IsDeleted).ToList();
+            return trashedNotes.Select(MapToDto).ToList();
+        }
+
+        public async Task<List<NoteResponseDto>> GetArchivedNotesAsync(int userId)
+        {
+            var notes = await _noteRepository.GetAllByUserAsync(userId);
+            var archivedNotes = notes.Where(n => n.IsArchived && !n.IsDeleted).ToList();
+            return archivedNotes.Select(MapToDto).ToList();
+        }
+
+        public async Task RestoreNoteAsync(int noteId, int userId)
+        {
+            var note = await _noteRepository.GetByIdAsync(noteId, userId)
+                ?? throw new NotFoundException("Note not found");
+
+            if (!note.IsDeleted)
+                throw new InvalidOperationException("Note is not in trash");
+
+            await SaveHistory(note);
+
+            note.IsDeleted = false;
+            note.UpdatedAt = DateTime.UtcNow;
+
+            await _noteRepository.UpdateAsync(note);
+            await _noteRepository.SaveAsync();
+        }
+
+        public async Task PermanentDeleteNoteAsync(int noteId, int userId)
+        {
+            var note = await _noteRepository.GetByIdAsync(noteId, userId)
+                ?? throw new NotFoundException("Note not found");
+
+            await SaveHistory(note);
+
+            await _noteRepository.DeleteAsync(note);
+            await _noteRepository.SaveAsync();
+        }
+
         public async Task TogglePinAsync(int noteId, int userId)
         {
             var note = await _noteRepository.GetByIdAsync(noteId, userId)
@@ -102,7 +144,7 @@ namespace BusinessLayer.Services
             await SaveHistory(note);
 
             note.IsArchived = !note.IsArchived;
-            note.IsPinned = false;
+            note.IsPinned = false; 
             note.UpdatedAt = DateTime.UtcNow;
 
             await _noteRepository.UpdateAsync(note);
@@ -190,6 +232,7 @@ namespace BusinessLayer.Services
             await _historyRepository.SaveAsync();
         }
 
+        // Map Note entity to DTO
         private static NoteResponseDto MapToDto(Note note)
         {
             return new NoteResponseDto
@@ -199,6 +242,7 @@ namespace BusinessLayer.Services
                 Content = note.Content,
                 IsPinned = note.IsPinned,
                 IsArchived = note.IsArchived,
+                IsDeleted = note.IsDeleted,
                 Color = note.Color,
                 Labels = note.NoteLabels
                     .Select(nl => nl.Label.Name)
