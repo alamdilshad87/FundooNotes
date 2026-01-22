@@ -47,5 +47,13 @@ namespace FundooNotes.Controllers
             await _labelService.DeleteLabelAsync(id, userId);
             return Ok(new { message = "Label deleted successfully" });
         }
+
+        // ✅ ADD THIS NEW ENDPOINT
+        [HttpGet("{labelId}/notes")]
+        public async Task<IActionResult> GetNotesByLabel(int labelId)
+        {
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            return Ok(await _labelService.GetNotesByLabelAsync(labelId, userId));
+        }
     }
 }
