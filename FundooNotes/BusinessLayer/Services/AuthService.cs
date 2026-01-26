@@ -84,9 +84,12 @@ namespace BusinessLayer.Services
 
             await _otpRepository.SaveAsync();
 
+            // ✅ UPDATE THIS - Pass firstName and lastName
             return JwtHelper.GenerateToken(
                 user.UserId,
                 user.Email!,
+                user.FirstName ?? "",    // ✅ ADD THIS
+                user.LastName ?? "",     // ✅ ADD THIS
                 GetJwtKey(),
                 GetJwtIssuer(),
                 GetJwtAudience(),
@@ -94,6 +97,7 @@ namespace BusinessLayer.Services
                 "login"
             );
         }
+
 
         public async Task ForgotPasswordAsync(string email)
         {

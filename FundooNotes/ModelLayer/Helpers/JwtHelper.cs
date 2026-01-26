@@ -8,9 +8,12 @@ namespace ModelLayer.Helpers
 {
     public static class JwtHelper
     {
+        // ✅ UPDATE THIS METHOD - Add firstName and lastName parameters
         public static string GenerateToken(
             int userId,
             string email,
+            string firstName,      // ✅ ADD THIS
+            string lastName,       // ✅ ADD THIS
             string key,
             string issuer,
             string audience,
@@ -21,6 +24,8 @@ namespace ModelLayer.Helpers
             {
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Email, email),
+                new Claim("firstName", firstName),    // ✅ ADD THIS
+                new Claim("lastName", lastName),      // ✅ ADD THIS
                 new Claim("purpose", purpose)
             };
 
